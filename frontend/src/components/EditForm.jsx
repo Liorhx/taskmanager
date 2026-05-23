@@ -1,10 +1,44 @@
 import React from "react";
+import { useEffect } from "react";
 
-const EditForm = ({ todo, onSave, onCancel }) => {
-  const [task, setTask] = React.useState(todo.task);
+const EditForm = ({ todo, todos, setTodos, onSave, onCancel }) => {
+  console.log("EditForm received todo:", todo);
+  const [taskToEdit, setTaskToEdit] = React.useState(todo.task);
 
+  useEffect(() => {
+    setTaskToEdit(todo.task);
+  }, [todo]);
+
+  const handleChange = (e) => {
+    setTaskToEdit(e.target.value);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const previousTodos = [...todos];
+    setTodos(
+      todos.map((t) => (t._id === todo._id ? { ...t, task: taskToEdit } : t)),
+    );
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/task/${todo._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ task: taskToEdit }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Edit task response:", data);
+    } catch (error) {
+      setTodos(previousTodos);
+      console.error("Error updating task:", error);
+    }
     // Handle save logic here
     onSave();
   };
@@ -19,11 +53,13 @@ const EditForm = ({ todo, onSave, onCancel }) => {
           <input
             className="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
             type="text"
-            name="task"
+            name=""
+            value={taskToEdit}
             onChange={handleChange}
             placeholder="Add a task"
           />
           <button
+            type="button"
             className=" bg-red-500 hover:bg-red-700 border-red-500 hover:border-red-700 text-sm border-4 text-white py-1 px-2 rounded"
             onClick={onCancel}
           >

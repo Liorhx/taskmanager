@@ -24,7 +24,7 @@ const Home = () => {
         // console.log("Fetch tasks response status:", response.status);
         if (response.status === 401 || response.status === 400) {
           // This explicitly deletes the string from the application tab
-          localStorage.removeItem("authToken");
+          localStorage.removeItem("token");
 
           // Send them away so they can't see the broken dashboard
           window.location.href = "/login";
@@ -151,6 +151,8 @@ const Home = () => {
       </form>
       {isEditing && (
         <EditForm
+          todos={todos}
+          setTodos={setTodos}
           todo={todos[editId]}
           onSave={() => setIsEditing(false)}
           onCancel={() => setIsEditing(false)}
